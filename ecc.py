@@ -138,6 +138,35 @@ class Point:
         return result
 
 
+A = 0
+B = 7
+P = 2**256 - 2**32 - 977
+N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+
+
+class S256Field(FieldElement):
+
+    def __init__(self, num, prime=None):
+        super().__init__(num, P)
+
+    def __repr__(self):
+        return '{:x}'.format(self.num).zfill(64)
+
+
+class S256Point(Point):
+
+    def __init__(self, x, y, a=None, b=None):
+        a, b = S256Field(A, P), S256Field(B, P)
+        if type(x) == int:
+            super().__init__(S256Field(x), S256Field(y), a, b)
+        else:
+            super().__init__(x, y, a, b)
+
+    def __rmul__(self, coefficient):
+        coefficient %= N
+        return super().__rmul__(coefficient)
+
+
 if __name__ == '__main__':
     prime1 = 223
     a1 = FieldElement(0, prime1)
