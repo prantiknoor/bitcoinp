@@ -1,5 +1,4 @@
 
-
 class FieldElement:
 
     def __init__(self, num, prime):
@@ -36,6 +35,10 @@ class FieldElement:
         if self.prime != other.prime:
             raise TypeError('Cannot multiply two numbers in different Fields')
         num = (self.num * other.num) % self.prime
+        return self.__class__(num, self.prime)
+
+    def __rmul__(self, coefficient):
+        num = (coefficient * self.num) % self.prime
         return self.__class__(num, self.prime)
 
     def __truediv__(self, other):
@@ -78,6 +81,9 @@ class Point:
     def __repr__(self):
         if self.x is None:
             return 'Point(infinity)'
+        elif isinstance(self.x, FieldElement):
+           return 'Point({}, {})_{}_{} FieldElement({})'.format(
+                self.x.num, self.y.num, self.a.num, self.b.num, self.x.prime)
         return f'Point({self.x}, {self.y})_{self.a}_{self.b}'
 
     def __add__(self, other):
@@ -106,7 +112,7 @@ class Point:
 
         # when P1 == P2 and y = 0
         # y = 0, so we cannot calculate slope > s = (3x^2 + a) / 2y
-        if self == other and self.y == 0:
+        if self == other and self.y == 0 * self.x:
             return self.__class__(None, None, self.a, self.b)
 
         # P1 == P2
@@ -121,4 +127,33 @@ class Point:
 
         raise NotImplementedError
 
+    def __rmul__(self, coefficient):
+        current = self
+        result = Point(None, None, self.a, self.b)
+        while coefficient:
+            if coefficient & 1:
+                result += current
+            current += current
+            coefficient >>= 1
+        return result
 
+
+if __name__ == '__main__':
+    prime1 = 223
+    a1 = FieldElement(0, prime1)
+    b1 = FieldElement(7, prime1)
+    x1 = FieldElement(15, prime1)
+    y1 = FieldElement(86, prime1)
+    point = Point(x1, y1, a1, b1)
+    print(point)
+    print(7 * point)
+
+    product = point
+    p = product
+    inf = Point(None, None, a1, b1)
+    count = 1
+    while product != inf:
+        product += p
+        count += 1
+
+    print(count)
